@@ -5,7 +5,10 @@ import time
 
 SOLVERS = [
     "sat-solvers/SAT_Competition_2014_Lingeling/code/binary/lingeling",
-    "sat-solvers/SAT_Competition_2014_Lingeling_druplig/code/binary/lingeling"
+    "sat-solvers/SAT_Competition_2014_Lingeling_druplig/code/binary/lingeling",
+    "sat-solvers/SAT_Competition_2014_BFS-Glucose/code/binary/BFSglucose",
+    "sat-solvers/SAT_Competition_2014_Riss/code/binary/riss",
+    "sat-solvers/SAT_Competition_2014_SWDiA5BY/code/binary/SWDiA5BY_static"
 ]
 
 PROBLEMS = glob.glob("nrosner-cnf/bonnie.exp.dc.uba.ar/~nrosner/cnf/*/*.cnf")
