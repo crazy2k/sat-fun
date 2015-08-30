@@ -32,6 +32,6 @@ if __name__ == "__main__":
             solution_lines = [line for line in output.split("\n")
                               if solution_pattern.match(line)]
 
-            print "%s | %s | %f | %d" % \
-                  (solver_filepath, problem_filepath, t2 - t1,
+            print "%s | %f | %s | %d" % \
+                  (problem_filepath, t2 - t1, solver_filepath,
                    len(solution_lines))
