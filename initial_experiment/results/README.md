@@ -1,7 +1,7 @@
 # Definitions
 
-*Problem:* A boolean formula expressed in conjunctive normal form (CNF).
-*Problem family:* A set of related problems that can be uniquely identified by a number representing their size. (*Vague definition!*)
+* *Problem:* A boolean formula expressed in conjunctive normal form (CNF).
+* *Problem family:* A set of related problems that can be uniquely identified by a number representing their size. (*Vague definition!*)
 
 # Goal
 
