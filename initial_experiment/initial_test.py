@@ -26,14 +26,15 @@ def solve_family(family_filepath, solver_filepath):
     family_filepath_tpl, family_range = family_filepath
     for i in family_range:
         problem_filepath = family_filepath_tpl % i
-        timed_out, delta, valid = solve_problem(problem_filepath,
+        timed_out, delta_perf, delta_time, valid = solve_problem(problem_filepath,
                                                 solver_filepath)
 
         timed_out_s = "TO" if timed_out else "!TO"
         valid_s = "V" if valid else "!V"
 
-        print("%s | %f | %s | %s | %s" %
-              (problem_filepath, delta, solver_filepath, timed_out_s, valid_s))
+        print("%s | %f | %f | %s | %s | %s" %
+              (problem_filepath, delta_perf, delta_time, solver_filepath,
+               timed_out_s, valid_s))
 
         # Don't try with bigger instances if timed out
         if timed_out:
@@ -42,11 +43,15 @@ def solve_family(family_filepath, solver_filepath):
 def solve_problem(problem_filepath, solver_filepath):
     problem_file = open(problem_filepath)
 
-    t1 = time.clock()
+    # We calculate time in different ways, just in case
+    t1_time = time.time()
+    t1_perf = time.perf_counter()
     output, timed_out = run_solver(solver_filepath, problem_file, TIMEOUT)
-    t2 = time.clock()
+    t2_perf = time.perf_counter()
+    t2_time = time.time()
 
-    delta = t2 - t1
+    delta_perf = t2_perf - t1_perf
+    delta_time = t2_time - t1_time
     output = output.decode("UTF-8") if not timed_out else output
 
     # A basic validity check of the output
@@ -57,7 +62,7 @@ def solve_problem(problem_filepath, solver_filepath):
                           if solution_pattern.match(str(line))]
         valid = len(solution_lines) == 1
 
-    return timed_out, delta, valid
+    return timed_out, delta_perf, delta_time, valid
 
 def run_solver(solver_filepath, problem_file, timeout):
     output = None
