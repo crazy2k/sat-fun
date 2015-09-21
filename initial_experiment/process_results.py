@@ -2,23 +2,26 @@ import fileinput
 import pprint
 import os
 
-from common import FAMILY_FILEPATHS, SOLVERS
+from common import FAMILY_FILEPATHS
 
 def add_data_from_line(line, data):
-    problem_filepath, delta_s, solver_filepath, timed_out_s, valid_s  =\
-        line.split("|")
-    delta = float(delta_s)
+    if line.startswith("WARNING! DIMACS"):
+        return
+
+    problem_filepath, delta_perf_s, _, solver_filepath, timed_out_s, valid_s = line.split("|")
+    delta = float(delta_perf_s)
     timed_out = timed_out_s.strip() == "TO"
     valid = valid_s.strip() == "V"
     problem_sfilepath = os.path.basename(problem_filepath).strip()
-    solver_sfilepath = solver_filepath.split("/")[1].strip()
+    solver_sfilepath = solver_filepath.split("/")[3].strip()
 
     if problem_sfilepath not in data:
         data[problem_sfilepath] = {}
 
     if solver_sfilepath not in data[problem_sfilepath]:
-        if not timed_out and valid:
-            data[problem_sfilepath][solver_sfilepath] = delta
+        if valid or timed_out:
+            data[problem_sfilepath][solver_sfilepath] = delta if not timed_out \
+                else float("inf")
 
 def best_times(data):
     bests = {}
@@ -59,31 +62,52 @@ def analyze_one_step(split_bests):
         if not split_bests[family_sfilepath_tpl]:
             continue
 
-        for i in family_range[:-1]:
+        for i in family_range:
             problem_filepath = family_filepath_tpl % i
             next_problem_filepath = family_filepath_tpl % (i + 1)
 
             problem_sfilepath = os.path.basename(problem_filepath)
             next_problem_sfilepath = os.path.basename(next_problem_filepath)
 
-            best_solver, best_time = \
-                split_bests[family_sfilepath_tpl][problem_sfilepath]
-            next_best_solver, next_best_time = \
-                split_bests[family_sfilepath_tpl][next_problem_sfilepath]
-            if best_solver is not None and next_best_solver is not None:
-                comp_count += 1
-                if best_solver == next_best_solver:
-                    good_count += 1
+            family_bests = split_bests[family_sfilepath_tpl]
+            if problem_sfilepath in family_bests and \
+                            next_problem_sfilepath in family_bests:
+
+                best_solver, best_time = \
+                    split_bests[family_sfilepath_tpl][problem_sfilepath]
+                next_best_solver, next_best_time = \
+                    split_bests[family_sfilepath_tpl][next_problem_sfilepath]
+
+                if best_time != float("inf") \
+                        and next_best_time != float("inf") \
+                        and best_solver is not None \
+                        and next_best_solver is not None:
+                    comp_count += 1
+                    if best_solver == next_best_solver:
+                        good_count += 1
 
     return float(good_count)/comp_count
+
+def format_results_dict(results):
+    for family in results:
+        print("------------------")
+        print("Family: ", family)
+        print()
+        for problem in sorted(results[family]):
+            best_solver, best_time = results[family][problem]
+            print("  Problem:", problem)
+            print("  Best solver:", best_solver)
+            print("  Best time:", best_time)
+            print()
 
 if __name__ == "__main__":
     data = dict()
     for line in fileinput.input():
         add_data_from_line(line, data)
 
-    pprint.pprint(split_in_families(best_times(data)))
+    pprint.pprint(data)
+    format_results_dict(split_in_families(best_times(data)))
     print("Percentage of times the best solver for the next size was the same " +
             "as for the current size:",
-          analyze_one_step(split_in_families(best_times(data))))
+          analyze_one_step(split_in_families(best_times(data)))*100)
 
